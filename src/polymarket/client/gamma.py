@@ -40,6 +40,18 @@ class GammaClient:
             offset += PAGE_LIMIT
         return [Market.model_validate(m) for m in results]
 
+    def search_markets(
+        self,
+        query: str,
+        active: bool = True,
+        closed: bool = False,
+        ttl: int = CacheTTL.METADATA,
+    ) -> list[Market]:
+        """Retourne les marchés dont la question contient query (insensible à la casse)."""
+        q = query.lower()
+        return [m for m in self.get_markets(active=active, closed=closed, ttl=ttl)
+                if q in m.question.lower() or q in m.slug.lower()]
+
     def get_market(self, condition_id: str, ttl: int = CacheTTL.METADATA) -> Market:
         """Détail d'un marché par son condition_id."""
         data = self._http.get(f"/markets/{condition_id}", ttl=ttl)

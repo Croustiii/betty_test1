@@ -5,7 +5,7 @@ Usage : uv run examples/fetch_active_markets.py
 
 from polymarket import PolymarketClient
 from polymarket.analysis.dataframes import markets_to_df, price_history_to_df, tokens_to_df
-from polymarket.config import MARKET_NB_FETCH
+from polymarket.config import MARKET_NB_FETCH, CacheTTL
 from polymarket.storage.events import EventStore
 
 def main() -> None:
@@ -19,12 +19,7 @@ def main() -> None:
 
         # 2. Enrichir les 5 premiers marchés avec les prix CLOB en temps réel
         print(f"Récupération des prix CLOB ({MARKET_NB_FETCH} premiers marchés)...")
-        for market in markets[:MARKET_NB_FETCH]:
-            for token in market.tokens:
-                try:
-                    token.price = client.get_price(token.token_id, side="BUY")
-                except Exception as e:
-                    print(f"  Erreur prix {market.question[:40]!r}: {e}")
+        client.enrich_with_prices(markets[:MARKET_NB_FETCH])
         print()
 
         # 3. DataFrame des marchés
@@ -45,7 +40,7 @@ def main() -> None:
 
         # 5. Liste des événements actifs + persistance SQLite
         print("Récupération des événements actifs...")
-        events = client.get_events(active=True, closed=False)
+        events = client.get_events(active=True, closed=False, ttl=CacheTTL.LIVE)
         print(f"  {len(events)} événements récupérés.")
 
         with EventStore() as store:
@@ -55,7 +50,8 @@ def main() -> None:
         print(f"=== Événements actifs ({min(10, len(events))} premiers) ===")
         for event in events[:10]:
             print(f"  [{event.end_date.date() if event.end_date else 'N/A'}] {event.title}")
-            print(f"    Marchés : {len(event.markets)} | Volume 24h : {event.volume_24hr:,.0f} $ | Liquidité : {event.liquidity:,.0f} $")
+            vol = f"{event.volume_24hr:,.0f} $" if event.volume_24hr is not None else "N/A"
+            print(f"    Marchés : {len(event.markets)} | Volume 24h : {vol} | Liquidité : {event.liquidity:,.0f} $")
             for market in event.markets[:3]:
                 probs = " / ".join(
                     f"{t.outcome} {t.price:.0%}" for t in market.tokens if t.price is not None

@@ -34,9 +34,24 @@ class PolymarketClient:
         """Détail d'un marché par son condition_id. Cache 1h."""
         return self._gamma.get_market(condition_id)
 
-    def get_events(self, active: bool = True, closed: bool = False) -> list[Event]:
-        """Récupère tous les événements (pagination complète). Cache 1h."""
-        return self._gamma.get_events(active=active, closed=closed)
+    def search_markets(self, query: str, active: bool = True, closed: bool = False, ttl: int = CacheTTL.METADATA) -> list[Market]:
+        """Recherche des marchés dont la question ou le slug contient query (insensible à la casse)."""
+        return self._gamma.search_markets(query, active=active, closed=closed, ttl=ttl)
+
+    def get_events(self, active: bool = True, closed: bool = False, ttl: int = CacheTTL.METADATA) -> list[Event]:
+        """Récupère tous les événements (pagination complète). Cache 1h par défaut, passer CacheTTL.LIVE pour les events courts."""
+        return self._gamma.get_events(active=active, closed=closed, ttl=ttl)
+
+    # --- Enrichissement ---
+
+    def enrich_with_prices(self, markets: list[Market], side: str = "BUY") -> None:
+        """Enrichit les tokens de chaque marché avec leur prix CLOB en temps réel (modifie en place)."""
+        for market in markets:
+            for token in market.tokens:
+                try:
+                    token.price = self._clob.get_price(token.token_id, side=side)
+                except Exception as e:
+                    print(f"  [WARN] Prix indisponible pour {market.question[:40]!r} : {e}")
 
     # --- CLOB API ---
 
