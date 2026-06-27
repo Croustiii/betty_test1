@@ -186,6 +186,7 @@ dependencies = [
     { name = "pandas" },
     { name = "pydantic" },
     { name = "tenacity" },
+    { name = "tzdata" },
 ]
 
 [package.optional-dependencies]
@@ -208,6 +209,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.9" },
     { name = "tenacity", specifier = ">=9.0" },
+    { name = "tzdata", specifier = ">=2024.1" },
 ]
 provides-extras = ["dev"]
 

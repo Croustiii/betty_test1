@@ -49,7 +49,7 @@ class CycleScheduler:
             fn(dt)
         except Exception as e:
             print(f"[ERROR] Callback échoué : {e}")
-
+    
     def run(self) -> None:
         """Démarre la boucle de cycles. Bloque indéfiniment — Ctrl+C pour arrêter proprement."""
         print(f"Scheduler démarré — intervalle : {self.interval_seconds}s, tick : {self.tick_seconds}s")
@@ -60,9 +60,9 @@ class CycleScheduler:
                 if wait > 0:
                     time.sleep(wait)
 
-                cycle_start = next_start
-                next_start = cycle_start + self.interval_seconds
-                cycle_end = next_start
+                cycle_end   = next_start + self.interval_seconds
+                next_start  = cycle_end
+                cycle_start = time.time()  # temps réel — évite l'accumulation du drift
 
                 if self._current_thread and self._current_thread.is_alive():
                     print(f"[WARNING] [{datetime.now().strftime('%H:%M:%S')}] Cycle précédent toujours en cours, ignoré")

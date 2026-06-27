@@ -89,6 +89,13 @@ class GammaClient:
             offset += PAGE_LIMIT
         return [Event.model_validate(e) for e in results]
 
+    def get_event_by_slug(self, slug: str, ttl: int = CacheTTL.LIVE) -> Event | None:
+        """Récupère un event par son slug exact via filtre serveur. Retourne None si introuvable."""
+        data = self._http.get("/events", {"slug": slug}, ttl=ttl)
+        if not data:
+            return None
+        return Event.model_validate(data[0] if isinstance(data, list) else data)
+
     def close(self) -> None:
         self._http.close()
 

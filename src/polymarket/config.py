@@ -20,5 +20,10 @@ class IntervalSec:
     VERY_SHORT = 300
     SHORT = 600
 
+QUERY_SEARCH = "btc-updown-5m-1782326700"
+
+QUERY_BTC_UPDOWN_BASE = "btc-updown-5m-"
+
+
 CACHE_DB_PATH = "polymarket_cache.db"
 

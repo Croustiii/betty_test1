@@ -34,6 +34,10 @@ class PolymarketClient:
         """Détail d'un marché par son condition_id. Cache 1h."""
         return self._gamma.get_market(condition_id)
 
+    def get_event_by_slug(self, slug: str, ttl: int = CacheTTL.LIVE) -> Event | None:
+        """Récupère un event par son slug exact. Retourne None si introuvable."""
+        return self._gamma.get_event_by_slug(slug, ttl=ttl)
+
     def search_markets(self, query: str, active: bool = True, closed: bool = False, ttl: int = CacheTTL.METADATA) -> list[Market]:
         """Recherche des marchés dont la question ou le slug contient query (insensible à la casse)."""
         return self._gamma.search_markets(query, active=active, closed=closed, ttl=ttl)
